@@ -8,6 +8,9 @@ import mplfinance as mpf
 
 plt.style.use('ggplot')
 
+def points(target, guess):
+    return int(1e3 - 1e4*(abs(guess - target)/target))
+
 def random_date(start, end):
     delta = end - start
     int_delta = delta.days
@@ -20,13 +23,19 @@ def main():
     sym = random.choice(_syms)
     stock = Ticker(sym)
     
+    plt.close()
+    
     endDate = random_date(datetime(2012,12,20), datetime(2020,12,20))
     length = timedelta(days=300)
     startDate = endDate - length
+    twoWeeks = timedelta(days=14)
+    guessDate = endDate+twoWeeks
     
     try:
         data = stock.history(interval="1d",  end=endDate, start=startDate)
-    
+        answer = stock.history(start=guessDate, end=guessDate, interval="1d")["Close"]
+        answer = answer[0]
+        
         macdIndicator = ta.trend.MACD(data["Close"], fillna=True)
         macd = macdIndicator.macd()
         signal = macdIndicator.macd_signal()
@@ -35,17 +44,34 @@ def main():
     except:
         print(sym)
         return False
-    ap = [mpf.make_addplot(macd.head(60), panel=1, ylabel="MACD", ylim=(-macd_lim, macd_lim))]
-    ap.append(mpf.make_addplot(signal.head(60), panel=1, color="r"))
     
+    plt.ion()
+    
+    ap = []
+    ap.append(mpf.make_addplot(signal.head(60), panel=1, color="r"))
+    ap.append(mpf.make_addplot(macd.head(60), panel=1, ylabel="MACD", ylim=(-macd_lim, macd_lim), color="k"))
     mpf.plot(data.head(60), type="candle", style="charles", addplot=ap, xrotation=20)
     
-    return True
+    valid = False
+    while not valid:
+        guess = input("What will this stock's price be in two weeks ("+guessDate.strftime("%d %B")+")? ")
+        try:
+            guess = float(guess)
+            valid = True
+        except:
+            print("Enter a number!")
+    
+    print(f"Answer is {answer}")
+    print(f"You scored {points(answer, guess)} points!")
+    
+    again = input("Play again? ([y]/n) ")
+    
+    if again == "n":
+        return True
+        
+    return False
     
     
-    
-
-
 if __name__ == "__main__":
     while not main():
         pass

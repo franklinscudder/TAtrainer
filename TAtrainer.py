@@ -50,7 +50,7 @@ def main():
     ap = []
     ap.append(mpf.make_addplot(signal.head(60), panel=1, color="r"))
     ap.append(mpf.make_addplot(macd.head(60), panel=1, ylabel="MACD", ylim=(-macd_lim, macd_lim), color="k"))
-    mpf.plot(data.head(60), type="candle", style="charles", addplot=ap, xrotation=20)
+    mpf.plot(data.head(60), type="candle", style="charles", title="$"+sym, addplot=ap, xrotation=20)
     
     valid = False
     while not valid:
